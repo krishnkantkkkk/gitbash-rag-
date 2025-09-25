@@ -1,0 +1,12 @@
+faster-whisper
+pyaudio
+Flask
+PyMuPDF
+sentence-transformers
+faiss-cpu
+langchain
+langchain-community
+langchain_core
+langchain-groq
+python-dotenv
+werkzeug
