@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="utf-8" />
-    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <meta content="width-device-width, initial-scale=1.0" name="viewport" />
     <title>Chat</title>
     <script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap"
@@ -57,6 +57,48 @@
             direction: ltr;
             -webkit-font-smoothing: antialiased;
         }
+
+        .file-card {
+            display: flex;
+            align-items: center;
+            padding: 0.5rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            gap: 0.5rem;
+            transition: background 0.3s, transform 0.3s, opacity 0.3s;
+        }
+
+        .file-card:hover {
+            background-color: rgba(0, 0, 0, 0.05);
+            transform: translateY(-2px);
+        }
+
+        .file-uploading {
+            position: relative;
+            opacity: 0.7;
+        }
+
+        .file-uploading::after {
+            content: '';
+            position: absolute;
+            right: 0.5rem;
+            width: 1rem;
+            height: 1rem;
+            border: 2px solid #4f46e5;
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
+        }
     </style>
 </head>
 
@@ -66,62 +108,37 @@
             class="w-72 bg-surface-light dark:bg-surface-dark flex flex-col p-4 border-r border-border-light dark:border-border-dark">
             <div class="flex items-center justify-between mb-6">
                 <h1 class="text-xl font-bold">Chat</h1>
-                <button class="text-subtext-light dark:text-subtext-dark">
-                    <span class="material-icons">search</span>
-                </button>
             </div>
             <button
+                id = "clear"
                 class="w-full bg-primary text-white py-2 px-4 rounded-lg flex items-center justify-center font-semibold mb-6">
-                <span class="material-icons mr-2">add</span> New Chat
+                Clear
             </button>
             <nav class="flex-grow">
-                <div id="uploaded-pdf-display" class="mb-4">
-                    <h2 class="text-xs text-subtext-light dark:text-subtext-dark uppercase font-bold mb-2">Uploaded PDF
+                <div id="uploaded-files-display" class="mb-4">
+                    <h2 class="text-xs text-subtext-light dark:text-subtext-dark uppercase font-bold mb-2">Uploaded
+                        Files
                     </h2>
-                    <ul id="uploaded-pdf-list">
+                    <ul id="uploaded-files-list">
                     </ul>
                 </div>
             </nav>
-            <div class="mt-auto">
-                <button class="flex items-center p-2 rounded-lg text-subtext-light dark:text-subtext-dark">
-                    <span class="material-icons">brightness_4</span>
-                </button>
-                <button
-                    class="w-full bg-gray-200 dark:bg-gray-700 text-text-light dark:text-text-dark py-2 px-4 rounded-lg flex items-center justify-center font-semibold mb-2">
-                    Upgrade to Pro
-                </button>
-                <div class="flex items-center p-2">
-                    <div
-                        class="w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center text-white font-bold">
-                        S
-                    </div>
-                </div>
-            </div>
         </aside>
+
         <main class="flex-1 flex flex-col bg-background-light dark:bg-background-dark">
             <header class="flex items-center justify-between p-4 border-b border-border-light dark:border-border-dark">
-                <div class="flex items-center">
-                    <h2 class="text-lg font-semibold">Orbita GPT</h2>
-                    <span
-                        class="bg-gray-200 dark:bg-gray-700 text-xs font-semibold text-subtext-light dark:text-subtext-dark px-2 py-1 rounded-full ml-2">Plus</span>
-                </div>
-                <div class="flex items-center space-x-2">
-                    <button
-                        class="flex items-center py-2 px-3 rounded-lg border border-border-light dark:border-border-dark bg-surface-light dark:bg-surface-dark">
-                        <span class="mr-2">Configuration</span>
-                        <span class="material-icons text-sm">expand_more</span>
-                    </button>
-                    <button
-                        class="flex items-center py-2 px-3 rounded-lg border border-border-light dark:border-border-dark bg-surface-light dark:bg-surface-dark">
-                        <span class="material-icons mr-2">share</span> Share
-                    </button>
-                    <button class="bg-gray-800 dark:bg-gray-900 text-white py-2 px-4 rounded-lg flex items-center">
-                        <span class="material-icons mr-2">add</span> New Chat
-                    </button>
-                </div>
+                <h2 class="text-lg font-semibold">Multimodal RAG</h2>
             </header>
+
             <div id="chat-messages" class="flex-1 overflow-y-auto p-6"></div>
-            <div class="p-6 pt-0">
+
+            <div id="audio-player-container" class="p-6 pt-0 relative" style="display: none;">
+                <audio id="audio-player" controls class="w-full"></audio>
+                <button id="audio-close-button"
+                    class="absolute top-0 right-4 bg-gray-600 text-white rounded-full w-6 h-6 flex items-center justify-center font-bold text-lg hover:bg-gray-800 transition-colors">&times;</button>
+            </div>
+
+            <div class="p-6 pt-2">
                 <div class="max-w-4xl mx-auto">
                     <div
                         class="bg-surface-light dark:bg-surface-dark p-4 rounded-lg border border-border-light dark:border-border-dark">
@@ -129,12 +146,10 @@
                             class="w-full bg-transparent border-0 focus:ring-0 text-text-light dark:text-text-dark placeholder-subtext-light dark:placeholder-subtext-dark mb-3"
                             placeholder="Ask me anything..." type="text" />
                         <div class="flex items-center justify-between">
-                            <button
-                                class="flex items-center text-sm font-medium text-subtext-light dark:text-subtext-dark">
-                                Select Source <span class="material-icons text-sm ml-1">expand_more</span>
-                            </button>
+                            <div></div>
                             <div class="flex items-center space-x-2">
-                                <input type="file" id="pdf-upload" accept=".pdf" class="hidden" />
+                                <input type="file" id="file-upload" accept=".pdf,.docx,.mp3,.wav,.m4a" class="hidden"
+                                    multiple />
                                 <button id="attach-button"
                                     class="flex items-center py-2 px-3 rounded-lg border border-border-light dark:border-border-dark">
                                     <span class="material-icons text-sm mr-1">attach_file</span> Attach
@@ -150,157 +165,191 @@
                             </div>
                         </div>
                     </div>
-                    <p class="text-center text-xs text-subtext-light dark:text-subtext-dark mt-2">Centra may display
-                        inaccurate info, so please double check the response. <a
-                            class="font-semibold text-text-light dark:text-text-dark" href="#">Your Privacy &amp; Orbita
-                            GPT</a></p>
                 </div>
             </div>
         </main>
     </div>
 
+    <div id="docx-modal" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-50"
+        style="display: none;">
+        <div
+            class="bg-surface-light dark:bg-surface-dark rounded-lg shadow-xl w-full max-w-2xl max-h-[80vh] flex flex-col">
+            <div class="flex justify-between items-center p-4 border-b border-border-light dark:border-border-dark">
+                <h2 id="modal-title" class="text-lg font-bold text-text-light dark:text-text-dark">Source Text</h2>
+                <button id="modal-close-button"
+                    class="text-subtext-light dark:text-subtext-dark hover:text-text-light dark:hover:text-text-dark text-3xl leading-none">&times;</button>
+            </div>
+            <div id="modal-content" class="prose dark:prose-invert p-4 overflow-y-auto">
+            </div>
+        </div>
+    </div>
+
+
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const attachButton = document.getElementById('attach-button');
-            const pdfUploadInput = document.getElementById('pdf-upload');
+            const fileUploadInput = document.getElementById('file-upload');
             const questionInput = document.querySelector('input[placeholder="Ask me anything..."]');
             const sendButton = document.getElementById('send-button');
             const chatMessagesDiv = document.getElementById('chat-messages');
-            const uploadedPdfList = document.getElementById('uploaded-pdf-list');
+            const audioPlayerContainer = document.getElementById('audio-player-container');
+            const audioPlayer = document.getElementById('audio-player');
+            const audioCloseButton = document.getElementById('audio-close-button');
+            const docxModal = document.getElementById('docx-modal');
+            const modalTitle = document.getElementById('modal-title');
+            const modalContent = document.getElementById('modal-content');
+            const modalCloseButton = document.getElementById('modal-close-button');
 
-            function displayMessage(sender, message, type = 'text', messageId = null) {
-                const messageElement = document.createElement('div');
-                messageElement.classList.add('mb-4', 'flex');
-                if (messageId) messageElement.id = messageId;
-
-                if (sender === 'user') {
-                    messageElement.classList.add('justify-end');
-                    messageElement.innerHTML = `
-                        <div class="bg-primary text-white p-3 rounded-lg max-w-xs">
-                            ${message}
-                        </div>
-                    `;
-                } else if (sender === 'system') {
-                    messageElement.className = 'max-w-[80%] self-start bg-gray-100 text-gray-800 px-4 py-2 rounded-2xl shadow-sm prose prose-sm mb-4 flex flex-col';
-                    messageElement.classList.add('justify-start');
-                    messageElement.innerHTML = `
-                        <div class="message_from_model max-w-[80%] self-start bg-gray-100 text-gray-800 px-4 py-2 rounded-2xl shadow-sm prose prose-sm">
-                            ${message || 'Thinking...'}
-                        </div>
-                    `;
+            function addFileToSidebar(filename, uploading = false) {
+                const uploadedFilesList = document.getElementById('uploaded-files-list');
+                if (document.querySelector(`#uploaded-files-list li[data-filename="${filename}"]`)) return;
+                const listItem = document.createElement('li');
+                listItem.setAttribute("data-filename", filename);
+                listItem.classList.add('file-card');
+                if (uploading) listItem.classList.add('file-uploading');
+                let icon = 'article', iconColor = 'text-gray-500';
+                const lowerFilename = filename.toLowerCase();
+                if (lowerFilename.endsWith('.pdf')) {
+                    icon = 'picture_as_pdf'; iconColor = 'text-red-500';
+                } else if (lowerFilename.endsWith('.docx')) {
+                    icon = 'description'; iconColor = 'text-blue-500';
+                } else if (['.mp3', '.wav', '.m4a'].some(ext => lowerFilename.endsWith(ext))) {
+                    icon = 'audiotrack'; iconColor = 'text-orange-500';
                 }
-                chatMessagesDiv.appendChild(messageElement);
-                chatMessagesDiv.scrollTop = chatMessagesDiv.scrollHeight;
-                return messageElement;
+                listItem.innerHTML = `<span class="material-icons ${iconColor}">${icon}</span><span class="font-medium flex-1 truncate" title="${filename}">${filename}</span>`;
+                uploadedFilesList.appendChild(listItem);
+                return listItem;
             }
 
-            attachButton.addEventListener('click', () => pdfUploadInput.click());
+            attachButton.addEventListener('click', () => fileUploadInput.click());
 
-            pdfUploadInput.addEventListener('change', async (event) => {
-                const file = event.target.files[0];
-                if (!file) return;
-
-                const formData = new FormData();
-                formData.append('pdfs', file);
-
-                displayMessage('system', 'Uploading PDF...', 'info');
-
+            fileUploadInput.addEventListener('change', async (event) => {
+                const files = event.target.files;
+                if (!files.length) return;
+                const formData = new FormData(), tempCards = {};
+                for (const file of files) {
+                    formData.append('files', file);
+                    tempCards[file.name] = addFileToSidebar(file.name, true);
+                }
                 try {
                     const response = await fetch('/upload', { method: 'POST', body: formData });
                     const data = await response.json();
-
                     if (response.ok) {
-                        displayMessage('system', data.message, 'success');
-                        const listItem = document.createElement('li');
-                        listItem.classList.add('mb-2');
-                        listItem.innerHTML = `
-                            <a class="flex items-center p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700" href="#">
-                                <span class="material-icons text-green-500 mr-3">picture_as_pdf</span>
-                                <span class="font-medium">${file.name}</span>
-                            </a>
-                        `;
-                        uploadedPdfList.appendChild(listItem);
+                        data.filenames.forEach(filename => {
+                            if (tempCards[filename]) tempCards[filename].classList.remove('file-uploading');
+                            else addFileToSidebar(filename);
+                        });
                     } else {
-                        displayMessage('system', `Error: ${data.error}`, 'error');
+                        Object.values(tempCards).forEach(card => card.remove());
+                        alert(`Error uploading file: ${data.error}`);
                     }
                 } catch (error) {
-                    displayMessage('system', `Network error: ${error.message}`, 'error');
+                    Object.values(tempCards).forEach(card => card.remove());
+                    alert(`Network error: ${error.message}`);
                 }
+                fileUploadInput.value = '';
             });
+
+            function formatTime(totalSeconds) {
+                const minutes = Math.floor(totalSeconds / 60);
+                const seconds = Math.floor(totalSeconds % 60);
+                return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+            }
 
             async function askQuestion() {
                 const question = questionInput.value.trim();
                 if (!question) return;
                 displayMessage('user', question);
                 questionInput.value = '';
-
-                // Initialize with "Thinking..."
-                const messageEl = displayMessage('system', 'Thinking...', 'stream');
-
+                const messageEl = displayMessage('system', 'Thinking...');
                 try {
                     const response = await fetch('/ask', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ question })
                     });
-
                     if (!response.body) {
                         messageEl.textContent = "Streaming not supported!";
                         return;
                     }
-
-                    const reader = response.body.getReader();
-                    const decoder = new TextDecoder();
-                    let buffer = "";
-                    let firstChunk = true;
-
+                    const reader = response.body.getReader(), decoder = new TextDecoder();
+                    let buffer = "", firstChunk = true;
                     while (true) {
                         const { done, value } = await reader.read();
                         if (done) break;
                         buffer += decoder.decode(value, { stream: true });
-
-                        // Extract JSON sources if present
                         const jsonMatch = buffer.match(/\{[\s\S]*\}$/);
                         if (jsonMatch) {
                             try {
                                 const parsed = JSON.parse(jsonMatch[0]);
                                 if (parsed.type === "sources") {
-                                    const abc = document.createElement('div');
-                                    abc.id = "xyz";
-                                    abc.className = "flex justify-end gap-2"
-                                    messageEl.appendChild(abc);
+                                    const sourcesContainer = document.createElement('div');
+                                    sourcesContainer.className = "flex justify-end gap-2 mt-2 flex-wrap";
+                                    messageEl.appendChild(sourcesContainer);
                                     parsed.content.forEach(src => {
                                         const link = document.createElement('a');
-                                        link.href = `/temp/${src.pdf_filename}#page=${src.page_num}`;
-                                        link.target = "_blank";
-                                        link.textContent = `@Source${src.page_num}`;
-                                        link.classList.add('block', 'text-gray-400', 'mb-1', 'no-underline', 'text-xs');
-                                        abc.appendChild(link); // append links below the text
+                                        link.classList.add('px-2', 'py-1', 'bg-gray-200', 'rounded-md', 'text-gray-600', 'text-xs', 'no-underline', 'hover:bg-gray-300', 'transition-colors', 'flex', 'items-center', 'gap-1');
+                                        link.style.cursor = 'pointer';
+                                        console.log(src);
+                                        if (src.type === 'pdf') {
+                                            link.target = "_blank";
+                                            link.href = `/temp/${src.source_filename}#page=${src.page_num}`;
+                                            link.innerHTML = `<span class="material-icons text-sm">picture_as_pdf</span> PDF p.${src.page_num}`;
+                                        } else if (src.type === 'image') {
+                                            const imgDiv = document.createElement('div');
+                                            imgDiv.appendChild(document.createElement('hr'));
+                                            const img = document.createElement('img');
+                                            imgDiv.appendChild(img);
+                                            img.src = `/temp/${src.image_path}`;
+                                            img.alt = src.image_path;
+                                            img.className = "my-2 max-w-full h-auto rounded-lg border border-border-light dark:border-border-dark object-contain";
+                                            img.style.maxHeight = "300px";
+                                            messageEl.insertBefore(img, messageEl.children[1]);
+                                        } else if (src.type === 'docx' || src.type === 'text') {
+                                            link.innerHTML = `<span class="material-icons text-sm">description</span> DOCX #${src.page_num}`;
+                                            link.href = 'javascript:void(0)';
+                                            link.onclick = () => {
+                                                modalTitle.textContent = `Source from: ${src.source_filename}`;
+                                                // Check if text_chunk exists and is a valid string
+                                                if (src.source_content && typeof src.source_content === 'string') {
+                                                    modalContent.innerHTML = `<p>${src.source_content.replace(/\n/g, '<br>')}</p>`;
+                                                } else {
+                                                    // Display a fallback message if content is missing
+                                                    modalContent.innerHTML = '<p class="text-gray-500"><em>No text content could be retrieved for this source.</em></p>';
+                                                }
+                                                docxModal.style.display = 'flex';
+                                            };
+                                            // --- END OF FIX ---
+
+                                        } else if (src.type === 'audio') {
+                                            link.href = 'javascript:void(0)';
+                                            link.innerHTML = `<span class="material-icons text-sm">audiotrack</span> ${formatTime(src.start_time)} - ${formatTime(src.end_time)}`;
+                                            link.title = src.source_filename;
+                                            link.onclick = () => {
+                                                audioPlayerContainer.style.display = 'block';
+                                                const currentSrc = audioPlayer.currentSrc.split('/').pop();
+                                                if (decodeURIComponent(currentSrc) !== src.source_filename) {
+                                                    audioPlayer.src = `/temp/${src.source_filename}`;
+                                                }
+                                                audioPlayer.currentTime = src.start_time;
+                                                audioPlayer.play();
+                                            };
+                                        }
+                                        sourcesContainer.appendChild(link);
                                     });
-                                    buffer = buffer.replace(jsonMatch[0], ""); // remove JSON from buffer
+                                    buffer = buffer.replace(jsonMatch[0], "");
                                 }
-                            } catch (e) {
-                                // incomplete JSON, wait for more chunks
-                            }
+                            } catch (e) { /* incomplete JSON */ }
                         }
-
-                        // Clean the buffer
-                        const cleaned = buffer.replace(/```html/g, "")
-                            .replace(/```/g, "")
-                            .replace(/\[\[END\]\]$/, "")
-                            .trim();
-
+                        const cleaned = buffer.replace(/```html/g, "").replace(/```/g, "").trim();
                         if (cleaned) {
                             if (firstChunk) {
-                                // Remove "Thinking..." on first real chunk
-                                messageEl.textContent = "";
+                                messageEl.innerHTML = "";
                                 const textSpan = document.createElement('div');
                                 textSpan.classList.add('message-text', 'w-full');
                                 messageEl.appendChild(textSpan);
                                 firstChunk = false;
                             }
-
-                            // Append or update the text
                             const textSpan = messageEl.querySelector('.message-text');
                             if (textSpan) textSpan.innerHTML = cleaned;
                         }
@@ -312,26 +361,31 @@
 
             sendButton.addEventListener('click', askQuestion);
             questionInput.addEventListener('keypress', (event) => {
-                if (event.key === 'Enter') {
-                    event.preventDefault();
-                    askQuestion();
-                }
+                if (event.key === 'Enter') { event.preventDefault(); askQuestion(); }
             });
 
+            async function fetchFiles() {
+                try {
+                    const res = await fetch('/files');
+                    const data = await res.json();
+                    const fileList = document.getElementById('uploaded-files-list');
+                    fileList.innerHTML = '';
+                    data.files.forEach(file => addFileToSidebar(file));
+                } catch (e) { console.error("Could not fetch files", e); }
+            }
+            window.addEventListener('load', fetchFiles);
+
             const voiceButton = document.getElementById('voice-button');
-            let mediaRecorder;
-            let isRecording = false;
-            let audioChunks = [];
+            let mediaRecorder, isRecording = false, audioChunks = [], stream;
 
             voiceButton.addEventListener('click', async () => {
                 if (isRecording) {
                     mediaRecorder.stop();
                     isRecording = false;
-                    voiceButton.innerHTML = '<span class="material-icons text-sm mr-1">mic</span> Voice';
-                    voiceButton.classList.remove('bg-red-500', 'text-white');
                 } else {
                     try {
-                        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                        // 2. Assign the result of getUserMedia to the stream variable
+                        stream = await navigator.mediaDevices.getUserMedia({ audio: true });
                         mediaRecorder = new MediaRecorder(stream);
                         mediaRecorder.start();
                         isRecording = true;
@@ -339,35 +393,69 @@
                         voiceButton.innerHTML = '<span class="material-icons text-sm mr-1">stop</span> Stop';
                         voiceButton.classList.add('bg-red-500', 'text-white');
 
-                        mediaRecorder.addEventListener("dataavailable", event => {
-                            audioChunks.push(event.data);
-                        });
+                        mediaRecorder.addEventListener("dataavailable", e => audioChunks.push(e.data));
 
                         mediaRecorder.addEventListener("stop", async () => {
+                            voiceButton.innerHTML = '<span class="material-icons text-sm mr-1">mic</span> Voice';
+                            voiceButton.classList.remove('bg-red-500', 'text-white');
                             const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
                             const formData = new FormData();
                             formData.append('audio', audioBlob, 'recording.wav');
+                            const res = await fetch('/transcribe', { method: 'POST', body: formData });
+                            const data = await res.json();
+                            if (res.ok) {
+                                questionInput.value = data.transcription;
+                            } else {
+                                alert(`Error: ${data.error}`);
+                            }
 
-                            try {
-                                const response = await fetch('/transcribe', {
-                                    method: 'POST',
-                                    body: formData
-                                });
-                                const data = await response.json();
-                                if (response.ok) {
-                                    questionInput.value = data.transcription;
-                                } else {
-                                    displayMessage('system', `Error: ${data.error}`, 'error');
-                                }
-                            } catch (error) {
-                                displayMessage('system', `Network error: ${error.message}`, 'error');
+                            // 3. Stop the microphone stream tracks to release the mic
+                            if (stream) {
+                                stream.getTracks().forEach(track => track.stop());
                             }
                         });
                     } catch (error) {
-                        displayMessage('system', `Error accessing microphone: ${error.message}`, 'error');
+                        alert(`Error accessing microphone: ${error.message}`);
                     }
                 }
             });
+
+            audioCloseButton.addEventListener('click', () => {
+                audioPlayerContainer.style.display = 'none';
+                audioPlayer.pause();
+            });
+
+            modalCloseButton.addEventListener('click', () => {
+                docxModal.style.display = 'none';
+            });
+
+            docxModal.addEventListener('click', (event) => {
+                if (event.target === docxModal) {
+                    docxModal.style.display = 'none';
+                }
+            });
+
+            function displayMessage(sender, message) {
+                const messageElement = document.createElement('div');
+                messageElement.classList.add('mb-4', 'flex', 'flex-col');
+                if (sender === 'user') {
+                    messageElement.classList.add('items-end');
+                    messageElement.innerHTML = `<div class="bg-primary text-white p-3 rounded-lg max-w-[80%]">${message}</div>`;
+                } else {
+                    messageElement.className = 'max-w-[80%] self-start bg-surface-light dark:bg-surface-dark text-text-light dark:text-text-dark px-4 py-2 rounded-2xl shadow-sm prose dark:prose-invert prose-sm mb-4 flex flex-col';
+                    messageElement.innerHTML = `<div class="message-text">${message}</div>`;
+                }
+                chatMessagesDiv.appendChild(messageElement);
+                chatMessagesDiv.scrollTop = chatMessagesDiv.scrollHeight;
+                return messageElement;
+            }
+        });
+
+        const clear = document.getElementById('clear');
+        clear.addEventListener('click', async () => {
+            await fetch('/clear-session', { method: 'POST' });
+            // reload
+            window.location.reload();
         });
     </script>
 </body>
